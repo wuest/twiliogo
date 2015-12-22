@@ -16,6 +16,7 @@ type Client interface {
 	AccountSid() string
 	AuthToken() string
 	RootUrl() string
+	UpdateRoot(string)
 	get(url.Values, string) ([]byte, error)
 	post(url.Values, string) ([]byte, error)
 	delete(string) error
@@ -171,4 +172,8 @@ func (client *TwilioClient) buildUri(parts ...string) string {
 		newParts = append(newParts, p)
 	}
 	return strings.Join(newParts, "/")
+}
+
+func (client *TwilioClient) UpdateRoot(root string) {
+	client.rootUrl = root + "/" + VERSION + "/Accounts/" + client.accountSid
 }
