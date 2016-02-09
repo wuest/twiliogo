@@ -36,3 +36,6 @@ func (client *MockClient) delete(uri string) error {
 	args := client.Mock.Called(nil, uri)
 	return args.Error(1)
 }
+
+func (client *MockClient) UpdateRoot(_ string) {
+}
