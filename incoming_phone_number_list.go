@@ -2,7 +2,14 @@ package twiliogo
 
 import (
 	"encoding/json"
+	"errors"
 	"net/url"
+	"strings"
+)
+
+var (
+	NoNextPage     error = errors.New("No next page exists for this resource")
+	NoPreviousPage error = errors.New("No previous page exists for this resource")
 )
 
 type IncomingPhoneNumberList struct {
@@ -22,6 +29,28 @@ type IncomingPhoneNumberList struct {
 }
 
 func GetIncomingPhoneNumberList(client Client, optionals ...Optional) (*IncomingPhoneNumberList, error) {
+	return getIncomingPhoneNumberListByPath("/IncomingPhoneNumbers.json", client, optionals...)
+}
+
+func GetNextPage(currentList *IncomingPhoneNumberList, client Client, optionals ...Optional) (*IncomingPhoneNumberList, error) {
+	if currentList.NextPageUri != "" {
+		uri := strings.Split(currentList.NextPageUri, client.AccountSid())
+		return getIncomingPhoneNumberListByPath(uri[len(uri)-1], client, optionals...)
+	} else {
+		return nil, NoNextPage
+	}
+}
+
+func GetPreviousPage(currentList *IncomingPhoneNumberList, client Client, optionals ...Optional) (*IncomingPhoneNumberList, error) {
+	if currentList.PreviousPageUri != "" {
+		uri := strings.Split(currentList.PreviousPageUri, client.AccountSid())
+		return getIncomingPhoneNumberListByPath(uri[len(uri)-1], client, optionals...)
+	} else {
+		return nil, NoPreviousPage
+	}
+}
+
+func getIncomingPhoneNumberListByPath(path string, client Client, optionals ...Optional) (*IncomingPhoneNumberList, error) {
 	var incomingPhoneNumberList *IncomingPhoneNumberList
 
 	params := url.Values{}
@@ -31,7 +60,7 @@ func GetIncomingPhoneNumberList(client Client, optionals ...Optional) (*Incoming
 		params.Set(param, value)
 	}
 
-	body, err := client.get(params, "/IncomingPhoneNumbers.json")
+	body, err := client.get(params, path)
 
 	if err != nil {
 		return nil, err
